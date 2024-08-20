@@ -1,9 +1,9 @@
 #include <iostream>
 #include <ctime>
-#include <chrono>
-#include <thread>
-#include <string>
-#include <fstream>
+#include <chrono> // Time management
+#include <thread> // 
+#include <string> 
+#include <fstream> // File handling
 
 using namespace std;
 
@@ -33,20 +33,20 @@ void clear(void) {
   #endif
 }
 
-std::tm* CheckTime(){
+std::tm* CheckTime() {
 
-  auto now = std::chrono::system_clock::now();
+  auto now = std::chrono::system_clock::now(); 
   std::time_t time_t = std::chrono::system_clock::to_time_t(now);
   std::tm* time_info = std::localtime(&time_t);
 
-  std::cout << "Year: " << (1900 + time_info->tm_year) << std::endl;
+  std::cout << "Year: " << (1900 + time_info->tm_year) << std::endl; 
   std::cout << "Month: " << (1 + time_info->tm_mon) << std::endl;
   std::cout << "Day: " << time_info->tm_mday << std::endl;
   std::cout << "Hour: " << time_info->tm_hour << std::endl;
   std::cout << "Minute: " << time_info->tm_min << std::endl;
   std::cout << "Second: " << time_info->tm_sec << std::endl;
 
-  std::this_thread::sleep_for(std::chrono::seconds(5));
+  std::this_thread::sleep_for(std::chrono::seconds(5)); // Wait for 5 seconds
 
   return(time_info);
 }
@@ -54,13 +54,17 @@ std::tm* CheckTime(){
 class occation {
 public :
   int createOccation() {
-    string fileName;
-    cin >> fileName;
-    fileName += ".txt";
+    cin >> occationName;
+    cout << "Date of Occation (Format : 12232024) : ";
+    cin >> occationDate;
+    string fileName = occationName + ".txt";
     std::ofstream outFile(fileName);
     if(outFile.is_open()) {
-      outFile <<
+      outFile << occationName << endl;
+      outFile.close();
+      return 0;
     }
+    return 1;
   }
   int selectOccation();
   int deleteOccation();
@@ -71,7 +75,7 @@ private :
 }
 
 int main() {
-  while(1){
+  while(true) {
     clear();
     std::cout << "\t[Event Calendar]\n";
     std::cout << "\t1. Today's' Information\n";
