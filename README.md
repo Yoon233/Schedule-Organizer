@@ -1,4 +1,4 @@
-Schedule Organizer ( with C++)
+**Schedule Organizer ( with C++)**
 
 This program helps you keep track of your special occasions, important plans, and more.
 
