@@ -1,6 +1,6 @@
-.vscode/
-.scheduleOrganizer/
-.scheduleOrganizer/
+*.pbd
+*.ilk
+*.json
 
 # Prerequisites
 *.d
