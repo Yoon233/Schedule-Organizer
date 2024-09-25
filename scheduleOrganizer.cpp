@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdio>
 #include <vector>
 #include <ctime>
 #include <chrono> // Time management 
@@ -16,6 +17,10 @@
 #endif
 
 using namespace std;
+
+void sleepSecond(const int seconds) {
+    std::this_thread::sleep_for(std::chrono::seconds(seconds));
+}
 
 string extractDateFromFile(const string& filePath) {
     ifstream inFile(filePath);
@@ -41,7 +46,7 @@ void clear(void) {
     #endif
 
     if (result != 0) {
-        cerr << "Error clearing the screen." << endl;
+        cout << "Error clearing the screen." << endl;
     }
 }
 
@@ -66,7 +71,6 @@ void getDateSuffix (string* dateSuffix, tm* time_info) {
     else *dateSuffix = "Error: no suffix";
 }
 
-
 int createOccation() {
     string occationName;
     string occationDate;
@@ -74,7 +78,7 @@ int createOccation() {
     string occationTime;
 
     cin.ignore(); // Preventing the reading leftover letters in input buffer
-    cout << "Enter Occation Name: ";
+    cout << "Enter Occation Name : ";
     getline(cin, occationName);
     cout << "Date of Occation (Format : YYYYMMDD) : ";
     getline(cin, occationDate);
@@ -93,24 +97,24 @@ int createOccation() {
     return 1;
 }
 
-void occationList(const std::string& folderPath) {
-    vector<pair<string, string>> fileDatePairs;  // Pair of filename and date
+vector<pair<string, string>> occationReading(vector<pair<string, string>>& fileDatePairs) {
+      // Pair of filename and date
 
 #ifdef _WIN32
     WIN32_FIND_DATA fileData;
     HANDLE hFind;
 
-    std::string searchPath = folderPath + "\\*.txt";
+    std::string searchPath = "Occation\\*" + fileDatePairs[] + ".txt";
     hFind = FindFirstFile(searchPath.c_str(), &fileData);
     if (hFind == INVALID_HANDLE_VALUE) {
-        std::cerr << "Error: Could not open directory " << folderPath << std::endl;
-        return;
+        std::cerr << "Error: Could not open directory " << std::endl;
+        return fileDatePairs;
     }
 
     do {
         if (!(fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
             std::string fileName = fileData.cFileName;
-            std::string filePath = folderPath + "\\" + fileName;
+            std::string filePath = "Occation\\" + fileName;
             std::string fileDate = extractDateFromFile(filePath);
             if (!fileDate.empty()) {
                 fileDatePairs.emplace_back(fileName, fileDate);
@@ -124,19 +128,19 @@ void occationList(const std::string& folderPath) {
     DIR* dir;
     struct dirent* entry;
 
-    dir = opendir(folderPath.c_str());
+    dir = opendir("Occation");
     if (dir == nullptr) {
-        std::cerr << "Error: Could not open directory " << folderPath << std::endl;
-        return;
+        std::cerr << "Error: Could not open directory " << "Occation" << std::endl;
+        return fileDatePairs;
     }
 
     while ((entry = readdir(dir)) != nullptr) {
         if (entry->d_type == DT_REG && std::strstr(entry->d_name, ".txt")) {
             std::string fileName = entry->d_name;
-            std::string filePath = folderPath + "/" + fileName;
+            std::string filePath = "Occation/" + fileName;
             std::string fileDate = extractDateFromFile(filePath);
             if (!fileDate.empty()) {
-                fileDatePairs.emplace_back(fsileName, fileDate);
+                fileDatePairs.emplace_back(fileName, fileDate);
             }
         }
     }
@@ -149,14 +153,16 @@ void occationList(const std::string& folderPath) {
         return a.second < b.second;
     });
 
-    // Print the sorted list with numbers
-    cout << "Occasions stored in folder '" << folderPath << "':\n";
+    return fileDatePairs;
+}
+
+void occationListingOutput(vector<pair<string, string>>& fileDatePairs) {
     int count = 1;
     for (const auto& pair : fileDatePairs) {
         cout << count++ << ". " << pair.first << " (Date: " << pair.second << ")\n";
     }
-}
 
+}
 
 int main() {
     tm* time_info;
@@ -184,40 +190,146 @@ int main() {
 
     while (true) {
         clear();
+        cout << endl;
+        vector<pair<string, string>> fileDatePairs;
+        fileDatePairs.clear();
+        occationReading(fileDatePairs);
+        
         cout << "\t[Schedule Organizer]\n";
         cout << "\t" << monthInfo << " " << time_info->tm_mday << dateSuffix << " " << time_info->tm_year << endl;
         cout << "\t1. Check Occasions \n";
         cout << "\t2. Exit Event Calendar\n\n";
-        cout << "\tEnter a number." << endl;
+        cout << "Enter a number : ";
 
         int option = 0;
+        int deleteFileOption = 0;
+        string NewOccationDate;
+        string NewOccationName;
         cin >> option;
 
         switch (option) {
             case 1:
                 clear();
                 cout << "\t[Check Occations]\n";
-                occationList("Occation");
+                occationListingOutput(fileDatePairs);
                 cout << "\t1. Add Occasions \n";
                 cout << "\t2. Delete Occasions\n";
                 cout << "\t3. Edit Occasions\n";
                 cout << "\t4. Exit\n\n";
-                cout << "\tEnter a number." << endl;
+                cout << "Enter a number : ";
                 option = 0;
                 cin >> option;
 
-                if (option == 1) {
-                    createOccation();
+                switch (option)
+                {
+                    case 1:
+                    clear();
+                    if(createOccation() != 0 ) cout << "Failed to make an Occation File.\n";
+                    break;
+                    
+                    case 2:
+                    clear();
+                    occationListingOutput(fileDatePairs);
+                    cout << "What occations do you want to delete? Please Select the number : ";
+                    cin >> deleteFileOption;
+                    deleteFileOption -= 1;
+                    while(true){
+                        clear();
+                        char optionYN;
+                        cout << "Do you really want to delete '" << fileDatePairs[deleteFileOption].first << "'?\n";
+                        cout << "Delete for Y or Back to lobby for N : ";
+                        cin >> optionYN;
+                        cout << endl;
+                        if (optionYN == 'Y')
+                        {
+                            ::remove(("Occation/" + fileDatePairs[deleteFileOption].first).c_str());
+                            cout << fileDatePairs[deleteFileOption].first << " is now Deleted.";
+                            sleepSecond(5);
+                            break;
+                        }
+                        else if(optionYN == 'N')
+                        {
+                            cout << fileDatePairs[deleteFileOption].first << ", Deleting Canceled.";
+                            sleepSecond(5);
+                            break;
+                        }
+                        else {
+                            cout << "Wrong Input. Please Eneter Y or N.";
+                            sleepSecond(5);
+                        }
+                    }
+                    break;
+
+                    case 3:
+                        clear();
+                        occationListingOutput(fileDatePairs);
+                        cout << "What occations do you want to edit? Please Select the number : ";
+                        cin >> deleteFileOption;
+                        deleteFileOption -= 1;
+                        cout << "What information do you want to edit from " << fileDatePairs[deleteFileOption].first << "?" << endl;
+                        cout << "1. Name of Occation" << endl;
+                        cout << "2. Date of Occation" << endl;
+                        cout << "Please Select the Number : ";
+
+                        int option;
+                        cin >> option;
+                        switch (option) {
+                        case 1:
+                            cout << "Change the name of " << fileDatePairs[deleteFileOption].first << " into : ";
+                            cin >> NewOccationName;
+                            break;
+
+                        case 2:
+                            cout << "Change the Date of "<< fileDatePairs[deleteFileOption].first <<", " << fileDatePairs[deleteFileOption].second << " into : ";
+                            break;
+                        }
+                        while(true){
+                            clear();
+                            char optionYN;
+                            cout << "Do you really want to save your changes of '" << fileDatePairs[deleteFileOption].first << "'?\n";
+                            cout << "Save for Y or Back to lobby for N : ";
+                            cin >> optionYN;
+                            cout << endl;
+                            if (optionYN == 'Y')
+                            {
+
+                                ofstream outFile("Occation/" + fileDatePairs[deleteFileOption].first);
+                                if (outFile.is_open()) {
+                                    outFile << NewOccationName << endl;
+                                    outFile << NewOccationDate << endl;
+                                    outFile.close();
+                                }
+                                cout << fileDatePairs[deleteFileOption].first << " is Saved.";
+                                sleepSecond(5);
+                                break;
+                            }
+                            else if(optionYN == 'N')
+                            {
+                                cout << fileDatePairs[deleteFileOption].first << ", Editing Canceled.";
+                                sleepSecond(5);
+                                break;
+                            }
+                            else {
+                                cout << "Wrong Input. Please Eneter Y or N.";
+                                sleepSecond(5);
+                            }
+                        }
+                    break;
+
+                    case 4:
+                        clear();
+                    break;
+
                 }
-
-                break;
-
+            break;
+            
             case 2:
                 clear();
                 return 0;
 
             default:
                 cout << "Invalid option, try again.\n";
+                break;
         }
     }
 }
